@@ -1,0 +1,65 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Test",
+            "request": "launch",
+            "mainClass": "info.revenberg.test.Test",
+            "projectName": "game"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Test",
+            "request": "launch",
+            "mainClass": "info.revenberg.game.Test",
+            "projectName": "game"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - InputForm",
+            "request": "launch",
+            "mainClass": "info.revenberg.game.InputForm",
+            "projectName": "game"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Contact",
+            "request": "launch",
+            "mainClass": "info.revenberg.game.Contact",
+            "projectName": "game"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - ImagePop",
+            "request": "launch",
+            "mainClass": "info.revenberg.game.ImagePop",
+            "projectName": "game"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - ImageDemo",
+            "request": "launch",
+            "mainClass": "info.revenberg.game.ImageDemo",
+            "projectName": "game"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Clicktoimage",
+            "request": "launch",
+            "mainClass": "info.revenberg.game.Clicktoimage",
+            "projectName": "game"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Game",
+            "request": "launch",
+            "mainClass": "info.revenberg.game.Game"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - Game",
+            "request": "launch",
+            "mainClass": "Game"
+        }
+    ]
+}
