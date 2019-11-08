@@ -82,7 +82,7 @@ public class ImportImages {
         try {
             String line = br.readLine();
             String[] s = line.split(";");
-            destDir = dest + "/" + s[0];
+            destDir = dest + "/" + s[0].replaceAll("[^a-zA-Z0-9_\\/:;]", "");
             makeCardDir(destDir + "/cards");
 
             CopyFile(s[1], destDir + "/background.png", false, false);
@@ -152,7 +152,7 @@ public class ImportImages {
         int x = (Card.width - metrics.stringWidth(text)) / 2;
         int y = (Card.height / 2);
         
-        g2d.drawString(text, x, y);
+        g2d.drawString(text.replaceAll("[^a-zA-Z0-9 :;'_]", ""), x, y);
 
         // Disposes of this graphics context and releases any system resources that it
         // is using.
@@ -171,6 +171,6 @@ public class ImportImages {
         ImportImages test = new ImportImages();
         File file = new File("src/main/resources/images");
         System.out.println( file.getAbsolutePath());
-        test.readFile(file.getAbsolutePath(), "C:/temp/Dreus.csv");
+        test.readFile(file.getAbsolutePath(), "C:/temp/Demo.csv");
     }
 }

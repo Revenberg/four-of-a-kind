@@ -37,6 +37,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 
@@ -45,7 +46,7 @@ import info.revenberg.game.Pile;
 public class GUI extends JFrame implements ActionListener, MouseListener, MouseMotionListener {
 	private static final long serialVersionUID = 1L;
 	public static String imagePath;
-	public static String templateName = "Standaard";
+	public static String templateName = "Demo";
 
 	private JPanelWithBackground mainPanel;
 	private JMenuBar menuBar;
@@ -200,7 +201,7 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 			playerColumns.add(jp);
 		}
 
-		File file = new File("src/main/resources/images");
+		File file = new File(imagePath);
 
 		cardTemplate.removeAllItems();
 		for (final File fileEntry : file.listFiles()) {
@@ -231,7 +232,7 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 		displayText.put("Acties", "Acties");
 		displayText.put("Nieuw", "Nieuw");
 		displayText.put("Import", "Import");
-	 displayText.put("Spelregels", "Spelregels");
+		displayText.put("Spelregels", "Spelregels");
 		displayText.put("Exit", "Exit");
 	}
 
@@ -310,7 +311,15 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 			return;
 		}
 		if (item.getText().equals(displayText.get("Spelregels"))) {
-			JOptionPane.showMessageDialog(this, "Spelregels");
+			String Spelregels = "Zoek vier kaartjes die bij elkaar horen. "
+					+ "Dat zijn bijvoorbeeld meervouden zoals vliegtuigen, sommen, meesters en skippyballen; in de demo 1, 2, 3 en 4. Of vind vier die bij "
+					+ "elkaar horen zoals vliegtuid, vliegtuigje, vliegtuigen en de afbeelding; in de demo A of B of C of D. Zie je een combinatie van kaartjes "
+					+ "roep dan Four! (vier). Wie de meeste kaartjes verzameld wint dit spel. Heel veel plezier.";
+			JTextArea msg = new JTextArea(Spelregels, 5, 50);
+			msg.setLineWrap(true);
+			msg.setWrapStyleWord(true);
+
+			JOptionPane.showMessageDialog(this, msg);
 			return;
 		}
 	}
@@ -357,7 +366,7 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 		popupDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		popupDialog.setTitle("");
 		popupDialog.setUndecorated(true);
-		
+
 		JLabel label = new JLabel(icon);
 		label.setOpaque(true);
 		popupDialog.add(label);
@@ -413,14 +422,11 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 
 			switch (p.type) {
 			case Draw:
-				// game.cleanPiles();
 				game.drawCard();
 				break;
 			case PLAYER:
 				game.clickPile(p);
-				// case Normal:
-				// game.clickPile(p);
-				// break;
+				break;
 			case FIELD:
 				game.clickPile(p);
 				break;
@@ -428,14 +434,26 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 				// game.turnGetPile();
 				break;
 			}
-
-			if (game.drawPile.cards.size() == 0) {
-				if (!game.searchForFour()) {
-					popup("gameover.jpg");
-				}
-			}
+			gameOver();
 
 			repaint();
+		}
+	}
+
+	private void gameOver() {
+		if (game.drawPile.cards.size() == 0) {
+			if (!game.searchForFour()) {
+
+				Timer timer;
+				timer = new Timer(5000, new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e1) {
+						popup("gameover.jpg");
+					}
+				});
+				timer.setRepeats(false);
+				timer.start();
+			}
 		}
 	}
 
@@ -495,6 +513,7 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 						player.score();
 						popup("four.png");
 						game.cleanPiles();
+						gameOver();
 					} else {
 						p.merge(tempPile);
 					}

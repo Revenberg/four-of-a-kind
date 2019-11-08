@@ -19,7 +19,7 @@ import java.io.*;
 public class Card extends JPanel {
 	private static final long serialVersionUID = 1L;
 	public static String imagePath = "";
-	public static String templateName = "Standaard";
+	public static String templateName = "Demo";
 	public static int width = 200;
 	public static int height = 120;
 

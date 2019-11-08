@@ -33,9 +33,9 @@ public class Engine {
 	 * Reset all game piles and the deck
 	 */
 	public void resetCards() {
-		int i = new File(Card.imagePath + "/" + Card.templateName + "/cards/").list().length;
-
-		deck = new Deck(i / 4 );
+		File f = new File(Card.imagePath + "/" + Card.templateName + "/cards/");
+		int i = f.list().length;
+		deck = new Deck(i / 4);
 		deck.shuffle();
 
 		drawPile = new Pile(Card.width + 20);
@@ -113,17 +113,18 @@ public class Engine {
 	/**
 	 * Draw a card from the draw pile and place it into the get pile
 	 */
-	public void drawCard() {			
-			
+	public void drawCard() {
 		if (!drawPile.cards.isEmpty()) {
-			Card drew = drawPile.drawCard();
-			drew.isReversed = false;
-			cleanPiles();
+			if (!getPile.cards.isEmpty()) {
+				cleanPiles();
+			}
+			if (getPile.cards.isEmpty()) {
+				Card drew = drawPile.drawCard();
+				drew.isReversed = false;
 
-			if (getPile.cards.size() == 0) {
 				getPile.addCard(drew);
-			}			
-		} 				
+			}
+		}
 	}
 
 	/**
@@ -175,12 +176,12 @@ public class Engine {
 		for (Pile pile : allPiles) {
 			if (pile.cards.size() > 0) {
 				Card c = pile.cards.get(0);
-				if (!c.isReversed) {					
+				if (!c.isReversed) {
 					if (sameColor.get(c.suit) == null) {
 						sameColor.put(c.suit, 1);
 					} else {
 						sameColor.put(c.suit, sameColor.get(c.suit) + 1);
-					}					
+					}
 				}
 				if (sameValue.get(c.value) == null) {
 					sameValue.put(c.value, 1);
