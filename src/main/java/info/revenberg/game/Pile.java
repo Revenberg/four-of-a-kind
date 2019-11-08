@@ -21,7 +21,6 @@ public class Pile extends JLayeredPane {
     public enum PileType {
         Draw, Get, FIELD, PLAYER
     };
-    // Normal, Draw, Get, Final, FIELD, PLAYER
 
     /**
      * Class constructor
@@ -125,7 +124,7 @@ public class Pile extends JLayeredPane {
      * @return
      */
     public Pile split(Card first) {
-        Pile p = new Pile(165);
+        Pile p = new Pile(Card.width + 20);
 
         for (int i = 0; i < cards.size(); ++i) {
             if (cards.get(i) == first) {
@@ -202,25 +201,6 @@ public class Pile extends JLayeredPane {
                 return true;
             }
             break;
-        //case Normal:
-            // If it's empty it can only receive a King
-/*            if (cards.isEmpty()) {
-                if (newCard.value == 14)
-                    return true;
-                return false;
-            }
-
-            topCard = cards.get(cards.size() - 1);
-            if (topCard.isReversed)
-                return false;
-
-            // Different color, consecutive values, descending
-            if (topCard.suit.isRed != newCard.suit.isRed)
-                if (topCard.value == newCard.value + 1 || topCard.value == 12 && newCard.value == 10) {
-                    return true;
-                }
-                */
-        //    break;
         case PLAYER:
             if (cards.isEmpty()) {
                 return true;
@@ -238,22 +218,6 @@ public class Pile extends JLayeredPane {
                 return false;
             }
             return true;
-        // }
-
-        /*
-         * case Final:
-         * 
-         * // Merge with a single card if (p.cards.size() > 1) return false;
-         * 
-         * // Start with an ace if (cards.isEmpty() && newCard.value == 1) { //
-         * suitFilter = newCard.suit; return true; }
-         * 
-         * // Has to be the same color // if(suitFilter != newCard.suit) return false;
-         * 
-         * // Consecutive values, ascending topCard = cards.get(cards.size() - 1); if
-         * (topCard.value == newCard.value - 1 || topCard.value == 10 && newCard.value
-         * == 12) { return true; } break;
-         */
         }
         return false;
     }
@@ -284,9 +248,5 @@ public class Pile extends JLayeredPane {
     @Override
     public Component.BaselineResizeBehavior getBaselineResizeBehavior() {
         return Component.BaselineResizeBehavior.CONSTANT_ASCENT;
-    }
-
-    /*
-     * @Override public int getBaseline(int width, int height) { return 0; }
-     */
+    }    
 }

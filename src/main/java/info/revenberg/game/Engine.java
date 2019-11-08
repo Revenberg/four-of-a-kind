@@ -4,19 +4,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 import info.revenberg.game.Pile;
 import info.revenberg.game.Card.Suit;
 import info.revenberg.game.Pile.PileType;
@@ -37,8 +24,8 @@ public class Engine {
 	 * Class constructor
 	 */
 	public Engine() {
-		addPlayer("Player 1");
-		addPlayer("Player 2");
+		addPlayer("Speler 1");
+		addPlayer("Speler 2");
 		resetCards();
 	}
 
@@ -46,13 +33,15 @@ public class Engine {
 	 * Reset all game piles and the deck
 	 */
 	public void resetCards() {
-		deck = new Deck();
+		int i = new File(Card.imagePath + "/" + Card.templateName + "/cards/").list().length;
+
+		deck = new Deck(i / 4 );
 		deck.shuffle();
 
-		drawPile = new Pile(165);
+		drawPile = new Pile(Card.width + 20);
 		drawPile.setOffset(0);
 
-		getPile = new Pile(180);
+		getPile = new Pile(Card.width + 35);
 		getPile.setOffset(0);
 
 		finalPiles = new ArrayList<Player>();
@@ -79,7 +68,7 @@ public class Engine {
 		getPile.type = PileType.Get;
 
 		for (int i = 1; i <= pileNumber; ++i) {
-			Pile p = new Pile(165);
+			Pile p = new Pile(Card.width + 20);
 			p.setOffset(0);
 			p.type = PileType.FIELD;
 
@@ -124,7 +113,8 @@ public class Engine {
 	/**
 	 * Draw a card from the draw pile and place it into the get pile
 	 */
-	public void drawCard() {				
+	public void drawCard() {			
+			
 		if (!drawPile.cards.isEmpty()) {
 			Card drew = drawPile.drawCard();
 			drew.isReversed = false;
@@ -162,176 +152,6 @@ public class Engine {
 			c.isReversed = true;
 
 			drawPile.addCard(c);
-		}
-	}
-
-	/**
-	 * Tests wheter all the cards have been placed in the correct pile
-	 *
-	 * @return {Boolean}
-	 */
-	public boolean checkWin() {
-		for (Pile p : finalPiles) {
-			if (p.cards.size() != 13)
-				return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Save the game state to save.xml file
-	 */
-	public void save() {
-
-		String saveString = "";
-
-		try {
-			DocumentBuilder docBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-
-			Document doc = docBuilder.newDocument();
-
-			String newLine = System.getProperty("line.separator");
-
-			Element game = doc.createElement("game");
-			doc.appendChild(game);
-
-			// This is from previous implementation, save each pile in a new line
-			for (Pile p : piles)
-				saveString += p.toString() + newLine;
-			for (Pile p : finalPiles)
-				saveString += p.toString() + newLine;
-			saveString += drawPile.toString() + newLine;
-			saveString += getPile.toString() + newLine;
-
-			String[] lines = saveString.split(newLine);
-
-			for (String pile : lines) {
-				Element p = doc.createElement("pile");
-
-				String cardStrings[] = pile.split("-");
-				for (String c : cardStrings) {
-					String parts[] = c.split(" of ");
-
-					Element cardE = doc.createElement("card");
-					cardE.setAttribute("value", parts[0]);
-					cardE.setAttribute("suit", parts[1]);
-					cardE.setAttribute("isReversed", parts[2]);
-
-					p.appendChild(cardE);
-				}
-
-				game.appendChild(p);
-			}
-
-			Transformer transformer = TransformerFactory.newInstance().newTransformer();
-			DOMSource src = new DOMSource(doc);
-			StreamResult res = new StreamResult(new File("save.xml"));
-
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-			transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-			transformer.transform(src, res);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-
-	/**
-	 * Load the game state from save.xml file
-	 */
-	public void load() {
-		try {
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			Document dom = db.parse("save.xml");
-			Element docEle = dom.getDocumentElement();
-			NodeList nl = docEle.getChildNodes();
-			int currentPileCount = 0;
-			if (nl != null) {
-				// Iterate through all piles
-				for (int i = 0; i < nl.getLength(); i++) {
-					if (nl.item(i).getNodeType() != Node.ELEMENT_NODE)
-						continue;
-					Element el = (Element) nl.item(i);
-					if (el.getNodeName().contains("pile")) {
-
-						NodeList cardList = el.getChildNodes();
-						Pile tempPile = new Pile(165);
-
-						if (cardList != null) {
-							// Iterate through all cards
-							for (int j = 0; j < cardList.getLength(); j++) {
-								if (cardList.item(j).getNodeType() != Node.ELEMENT_NODE)
-									continue;
-
-								Element cardNode = (Element) cardList.item(j);
-
-								String suitName = cardNode.getAttribute("suit");
-								boolean isReversed = cardNode.getAttribute("isReversed").equals("true");
-								int value = Card.valueInt(cardNode.getAttribute("value"));
-
-								// Skip the base card
-								if (value == 100)
-									continue;
-
-								// Search for the card in all piles
-								Card card = null;
-								Pile foundPile = null;
-
-								for (Pile p : allPiles) {
-									if ((card = p.searchCard(value, suitName)) != null) {
-										foundPile = p;
-										break;
-									}
-								}
-
-								tempPile.addCard(card);
-								foundPile.removeCard(card);
-
-								// Face-up or face-down card
-								if (isReversed) {
-									card.hide();
-								} else {
-									card.show();
-								}
-							}
-
-							// Add the cards to the correct pile
-							if (currentPileCount < pileNumber) {
-								piles.get(currentPileCount).merge(tempPile);
-							} else if (currentPileCount < pileNumber + 4) {
-								finalPiles.get(currentPileCount - pileNumber).merge(tempPile);
-
-								// if (!tempPile.isEmpty()) {
-								// Set the pile filter for final piles
-								// Card c = tempPile.peekTopCard();
-								// finalPiles.get(currentPileCount
-								// SR - pileNumber).suitFilter = c.suit;
-								// }
-							} else if (currentPileCount == pileNumber + 4) {
-								drawPile.merge(tempPile);
-							} else {
-								getPile.merge(tempPile);
-							}
-						}
-						currentPileCount++;
-					}
-				}
-			}
-
-			// Draw and add the cards again so the offsets are re-calculated
-			for (Pile p : allPiles) {
-				ArrayList<Card> cards = new ArrayList<Card>();
-
-				while (!p.isEmpty())
-					cards.add(p.drawCard());
-
-				for (Card card : cards)
-					p.addCard(card);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 

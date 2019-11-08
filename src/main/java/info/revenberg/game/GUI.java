@@ -16,6 +16,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +26,9 @@ import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JLayeredPane;
@@ -42,6 +45,9 @@ import info.revenberg.game.Pile;
 public class GUI extends JFrame implements ActionListener, MouseListener, MouseMotionListener {
 	private static final long serialVersionUID = 1L;
 	public static String imagePath;
+	public static String templateName = "Standaard";
+
+	private JPanelWithBackground mainPanel;
 	private JMenuBar menuBar;
 	private JDialog popupDialog = null;
 
@@ -65,6 +71,11 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 	private JTextField nameInput;
 	private JButton addButton;
 
+	// Select CardTemplate
+	private static JPanel templatePanel;
+	private JComboBox<String> cardTemplate;
+	private JButton selectTemplate;
+
 	/**
 	 * GUI class constructor
 	 */
@@ -79,7 +90,8 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 		setSize(900, 700);
 
 		try {
-			setContentPane(new JPanelWithBackground(imagePath + "/" + "background.jpg"));
+			mainPanel = new JPanelWithBackground(imagePath + "/" + templateName + "/background.png");
+			setContentPane(mainPanel);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -109,7 +121,6 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 		columns = new JPanel();
 		columns.setOpaque(false);
 		columns.setLayout(new GridLayout(3, 4));
-		columns.setMinimumSize(new Dimension(500, 900));
 
 		// Add the top columns panel
 		FlowLayout topFlow = new FlowLayout(FlowLayout.LEFT);
@@ -168,6 +179,7 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 		topColumns.add(game.drawPile);
 		topColumns.add(game.getPile);
 		topColumns.add(players);
+		topColumns.add(templatePanel);
 
 		for (Pile p : game.finalPiles) {
 			JPanel jp = new JPanel();
@@ -188,6 +200,15 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 			playerColumns.add(jp);
 		}
 
+		File file = new File("src/main/resources/images");
+
+		cardTemplate.removeAllItems();
+		for (final File fileEntry : file.listFiles()) {
+			if (fileEntry.isDirectory()) {
+				cardTemplate.addItem(fileEntry.getName());
+				templateName = fileEntry.getName();
+			}
+		}
 		validate();
 	}
 
@@ -207,10 +228,10 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 	private void createTextMap() {
 		displayText = new HashMap<String, String>();
 
-		displayText.put("File", "File");
-		displayText.put("New", "New");
-		// displayText.put("Save", "Save");
-		// displayText.put("Load", "Load");
+		displayText.put("Acties", "Acties");
+		displayText.put("Nieuw", "Nieuw");
+		displayText.put("Import", "Import");
+	 displayText.put("Spelregels", "Spelregels");
 		displayText.put("Exit", "Exit");
 	}
 
@@ -220,13 +241,13 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 	private void createTopMenu() {
 		menuBar = new JMenuBar();
 
-		JMenu FileMenu = new JMenu("File");
-		FileMenu.setMnemonic(KeyEvent.VK_F);
+		JMenu FileMenu = new JMenu("Acties");
+		FileMenu.setMnemonic(KeyEvent.VK_A);
 		menuBar.add(FileMenu);
 
-		menuOption[] fileOptions = new menuOption[] { new menuOption(displayText.get("New"), KeyEvent.VK_N),
-//				new menuOption(displayText.get("Save"), KeyEvent.VK_S),
-//				new menuOption(displayText.get("Load"), KeyEvent.VK_L),
+		menuOption[] fileOptions = new menuOption[] { new menuOption(displayText.get("Nieuw"), KeyEvent.VK_N),
+				new menuOption(displayText.get("Import"), KeyEvent.VK_I),
+				new menuOption(displayText.get("Spelregels"), KeyEvent.VK_S),
 				new menuOption(displayText.get("Exit"), KeyEvent.VK_X) };
 
 		for (menuOption option : fileOptions) {
@@ -280,19 +301,39 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 			this.dispose();
 			return;
 		}
-		if (item.getText().equals(displayText.get("New"))) {
+		if (item.getText().equals(displayText.get("Nieuw"))) {
 			reset();
 			return;
 		}
-		if (item.getText().equals(displayText.get("Save"))) {
-			game.save();
-			JOptionPane.showMessageDialog(this, "Game saved!");
+		if (item.getText().equals(displayText.get("Import"))) {
+			FileChooser();
 			return;
 		}
-		if (item.getText().equals(displayText.get("Load"))) {
-			game.load();
-			validate();
+		if (item.getText().equals(displayText.get("Spelregels"))) {
+			JOptionPane.showMessageDialog(this, "Spelregels");
 			return;
+		}
+	}
+
+	private void FileChooser() {
+		JFileChooser jfc = new JFileChooser();
+		jfc.setCurrentDirectory(new java.io.File(System.getProperty("user.home")));
+		jfc.setDialogTitle("Choose Value File");
+		jfc.setFileFilter(new CSVFilter());
+		int returnValue = jfc.showOpenDialog(null);
+
+		if (returnValue == JFileChooser.APPROVE_OPTION) {
+			File selectedFile = jfc.getSelectedFile();
+
+			ImportImages test = new ImportImages();
+			File file = new File("src/main/resources/images");
+			try {
+				test.readFile(file.getAbsolutePath(), selectedFile.getAbsolutePath());
+			} catch (IOException | URISyntaxException e) {
+				e.printStackTrace();
+			}
+
+			JOptionPane.showMessageDialog(this, "Imported!");
 		}
 	}
 
@@ -311,16 +352,19 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 	public void popup(String imgName) {
 		ImageIcon icon = new ImageIcon(imagePath + "/" + imgName);
 
-			popupDialog = new JDialog();
-			popupDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			popupDialog.setTitle("");
-			popupDialog.setUndecorated(true);
-
-			popupDialog.add(new JLabel(icon));
-
-			popupDialog.pack();
-			popupDialog.setLocationByPlatform(true);
+		popupDialog = new JDialog();
+		popupDialog.getRootPane().setOpaque(true);
+		popupDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		popupDialog.setTitle("");
+		popupDialog.setUndecorated(true);
 		
+		JLabel label = new JLabel(icon);
+		label.setOpaque(true);
+		popupDialog.add(label);
+
+		popupDialog.pack();
+		popupDialog.setLocationByPlatform(true);
+
 		popupDialog.setLocation(this.getLocation());
 
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -370,25 +414,25 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 			switch (p.type) {
 			case Draw:
 				// game.cleanPiles();
-				game.drawCard();				
+				game.drawCard();
 				break;
 			case PLAYER:
 				game.clickPile(p);
-	//		case Normal:
-	//			game.clickPile(p);
-	//			break;
+				// case Normal:
+				// game.clickPile(p);
+				// break;
 			case FIELD:
 				game.clickPile(p);
 				break;
 			case Get:
-//				game.turnGetPile();
+				// game.turnGetPile();
 				break;
 			}
 
 			if (game.drawPile.cards.size() == 0) {
 				if (!game.searchForFour()) {
 					popup("gameover.jpg");
-				}	
+				}
 			}
 
 			repaint();
@@ -427,7 +471,6 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 	@Override
 	public void mouseReleased(MouseEvent e) {
 		if (tempPile != null) {
-
 			Point mousePos = e.getLocationOnScreen();
 			boolean match = false;
 
@@ -450,7 +493,7 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 						p.cards.clear();
 						Player player = (Player) p;
 						player.score();
-						popup("four.jpg");
+						popup("four.png");
 						game.cleanPiles();
 					} else {
 						p.merge(tempPile);
@@ -467,11 +510,6 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 			lp.remove(tempPile);
 			tempPile = null;
 			repaint();
-
-			if (game.checkWin()) {
-				JOptionPane.showMessageDialog(this, "You won! Congrats!");
-				reset();
-			}
 		}
 	}
 
@@ -482,16 +520,15 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 	}
 
 	public class JPanelWithBackground extends JPanel {
-		/**
-		 *
-		 */
 		private static final long serialVersionUID = 1L;
 		private Image backgroundImage;
 
-		// Some code to initialize the background image.
-		// Here, we use the constructor to load the image. This
-		// can vary depending on the use case of the panel.
 		public JPanelWithBackground(String fileName) throws IOException {
+			File file = new File(fileName);
+			backgroundImage = ImageIO.read(file);
+		}
+
+		public void updateBackground(String fileName) throws IOException {
 			File file = new File(fileName);
 			backgroundImage = ImageIO.read(file);
 		}
@@ -499,23 +536,32 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 
-			// Draw the background image.
-			g.drawImage(backgroundImage, 0, 0, this);
+			g.drawImage(backgroundImage, 0, 0, getWidth(), getHeight(), this);
 		}
 	}
 
 	private void buildPanel() {
 		topPanel = new JPanel();
 		buttonPanel = new JPanel();
+		templatePanel = new JPanel();
 		nameLabel = new JLabel("Naam");
 		nameInput = new JTextField(10);
-		theHandler handler = new theHandler();
+
+		TemplateHandler templateHandler = new TemplateHandler();
+		cardTemplate = new JComboBox<String>();
+		selectTemplate = new JButton("Wijzig template");
+		selectTemplate.addActionListener((ActionListener) templateHandler);
+
+		TheHandler handler = new TheHandler();
 		addButton = new JButton("Speler toevoegen");
 		addButton.addActionListener((ActionListener) handler);
 
 		topPanel.add(nameLabel);
 		topPanel.add(nameInput);
 		topPanel.add(addButton);
+
+		templatePanel.add(cardTemplate);
+		templatePanel.add(selectTemplate);
 
 		players.add(topPanel);
 		players.add(buttonPanel);
@@ -527,12 +573,26 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 
 	private void addPlayerButton(String name) {
 		JButton button = new JButton(name);
-		theHandler handler = new theHandler();
+		TheHandler handler = new TheHandler();
 		button.addActionListener((ActionListener) handler);
 		buttonPanel.add(button);
 	}
 
-	private class theHandler implements ActionListener {
+	private class TemplateHandler implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			GUI.templateName = cardTemplate.getSelectedItem().toString();
+			try {
+				mainPanel.updateBackground(imagePath + "/" + GUI.templateName + "/background.png");
+			} catch (IOException e1) {
+				System.out.println(imagePath + "/" + GUI.templateName + "/background.png");
+				e1.printStackTrace();
+			}
+			Card.templateName = GUI.templateName;
+			reset();
+		}
+	}
+
+	private class TheHandler implements ActionListener {
 		public void actionPerformed(ActionEvent event) {
 			String name = nameInput.getText();
 
@@ -545,11 +605,11 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 				game.addPlayer(name);
 				reset();
 			} else {
-				if (buttonPanel.getComponentCount() > 1) {					
+				if (buttonPanel.getComponentCount() > 1) {
 					JButton jb = (JButton) event.getSource();
 					name = jb.getText();
-					buttonPanel.remove(jb);					
-					game.removePlayer(name);					
+					buttonPanel.remove(jb);
+					game.removePlayer(name);
 					reset();
 				}
 			}
@@ -557,5 +617,15 @@ public class GUI extends JFrame implements ActionListener, MouseListener, MouseM
 			buttonPanel.repaint();
 		}
 
+	}
+
+	class CSVFilter extends javax.swing.filechooser.FileFilter {
+		public boolean accept(File f) {
+			return (f.isFile() && f.getName().toLowerCase().endsWith(".csv")) || f.isDirectory();
+		}
+
+		public String getDescription() {
+			return "*.csv";
+		}
 	}
 }

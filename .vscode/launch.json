@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - ImportImages",
+            "request": "launch",
+            "mainClass": "info.revenberg.game.ImportImages",
+            "projectName": "game"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - Test",
             "request": "launch",
             "mainClass": "info.revenberg.test.Test",

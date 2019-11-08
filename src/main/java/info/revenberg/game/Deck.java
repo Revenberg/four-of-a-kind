@@ -16,13 +16,12 @@ public class Deck {
 	/**
 	 * Class constructor
 	 */
-	public Deck() {
+	public Deck(int i) {
 
-		// Create all the 52 cards
 		cards = new ArrayList<Card>();
 
 		for (Suit suit : Suit.values()) {
-			for (int value = 1; value <= 14; ++value) {
+			for (int value = 1; value <= i; ++value) {
 				cards.add(new Card(value, suit));
 			}
 		}

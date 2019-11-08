@@ -13,7 +13,7 @@ public class Game {
 
 	public static void main(String[] args) throws InterruptedException {							
 		GUI.imagePath = "D:/git/four-of-a-kind/src/main/resources/images";
-		Card.cardPath  = "D:/git/four-of-a-kind/src/main/resources/images/cards";
+		Card.imagePath  = "D:/git/four-of-a-kind/src/main/resources/images";
 		new Game();
 	}
 }

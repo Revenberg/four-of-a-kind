@@ -18,8 +18,11 @@ import java.io.*;
  */
 public class Card extends JPanel {
 	private static final long serialVersionUID = 1L;
-	static String cardPath = "";
-	// Members
+	public static String imagePath = "";
+	public static String templateName = "Standaard";
+	public static int width = 200;
+	public static int height = 120;
+
 	public int value;
 	public Suit suit;
 	private BufferedImage image;
@@ -34,9 +37,9 @@ public class Card extends JPanel {
 		A(1), B(2), C(3), D(4);
 
 		public int value;
-		
+
 		private Suit(int value) {
-			this.value = value;			
+			this.value = value;
 		}
 	};
 
@@ -59,7 +62,7 @@ public class Card extends JPanel {
 	}
 
 	/**
-	 * toString method, eg: "K of Diamonds"
+	 * toString method, eg: "1 of A"
 	 * 
 	 * @return {String} Description of the current card
 	 */
@@ -87,13 +90,22 @@ public class Card extends JPanel {
 		this.suit = suit;
 		isReversed = false;
 
- 		try {
+		try {
 			// Load the image for the current file
-			File file = new File(cardPath + "/" + this.toString().toLowerCase() + ".png");
+			String filename = "";
+			if (value == 100) {
+				filename = imagePath + "/" + templateName + "/front.png";
+			} else {
+				filename = imagePath + "/" + templateName + "/cards/" + this.toString().toLowerCase() + ".png";
+			}
+			File file = new File(filename);
 			image = ImageIO.read(file);
 
 			// Load the backimage
-			file = new File(cardPath + "/back.png");
+			file = new File(imagePath + "/" + templateName + "/back.png");
+			if (!file.exists()) {
+				System.out.println(file.getAbsolutePath());
+			}
 			backImage = ImageIO.read(file);
 
 			setBounds(0, 0, image.getWidth(), image.getHeight());
@@ -102,7 +114,7 @@ public class Card extends JPanel {
 		}
 
 		positionOffset = new Point(0, 0);
-		setSize(new Dimension(145, 100));
+		setSize(new Dimension(width, height));
 		setOpaque(false);
 	}
 
